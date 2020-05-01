@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: cdsw
+Version: 1.0.0
+Summary: utilities for Python on Cloudera Data Science Workbench
+Home-page: https://www.cloudera.com/products/data-science-and-engineering/data-science-workbench.html
+Author: Cloudera
+Maintainer: Cloudera
+License: Copyright (c) Cloudera Inc. 2017, All Rights Reserved
+Platform: Cloudera Data Science Workbench
+
+UNKNOWN
+
+
