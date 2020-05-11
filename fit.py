@@ -4,7 +4,7 @@ from pyspark.sql.types import *
 
 """#uncomment for experiments
 # # Get parameters for experiments
-# Declare parameters 
+# Declare parameters
 param_numTrees= int(sys.argv[1])
 param_maxDepth=int(sys.argv[2])
 param_impurity=sys.argv[3]
@@ -33,10 +33,10 @@ spark = SparkSession\
   .getOrCreate()
 
 
-# # Load the data 
+# # Load the data
 # ### From File
 
-# Define Schema : 
+# Define Schema :
 #     fixedacidity: numeric
 #     volatileacidity: numeric
 #     citricacid: numeric
@@ -50,30 +50,30 @@ spark = SparkSession\
 #     alcohol: numeric
 #     quality: discrete
 
-schema = StructType([StructField("fixedacidity", DoubleType(), True),     
-  StructField("volatileacidity", DoubleType(), True),     
-  StructField("citricacid", DoubleType(), True),     
-  StructField("residualsugar", DoubleType(), True),     
-  StructField("chlorides", DoubleType(), True),     
-  StructField("freesulfurdioxide", DoubleType(), True),     
-  StructField("totalsulfurdioxide", DoubleType(), True),     
-  StructField("density", DoubleType(), True),     
-  StructField("ph", DoubleType(), True),     
-  StructField("sulphates", DoubleType(), True),     
-  StructField("alcohol", DoubleType(), True),     
+schema = StructType([StructField("fixedacidity", DoubleType(), True),
+  StructField("volatileacidity", DoubleType(), True),
+  StructField("citricacid", DoubleType(), True),
+  StructField("residualsugar", DoubleType(), True),
+  StructField("chlorides", DoubleType(), True),
+  StructField("freesulfurdioxide", DoubleType(), True),
+  StructField("totalsulfurdioxide", DoubleType(), True),
+  StructField("density", DoubleType(), True),
+  StructField("ph", DoubleType(), True),
+  StructField("sulphates", DoubleType(), True),
+  StructField("alcohol", DoubleType(), True),
   StructField("quality", StringType(), True)
 ])
 
 
 #set path to data
-data_path = "s3a://mlamairesse/wine_dataset/data/"
+data_path = "file:///home/cdsw/data"
 data_file = "WineNewGBTDataSet.csv"
 #data_path = "/tmp/wine_pred"
 #data_file = "WineNewGBTDataSet.csv"
 wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
 
 """
-# ### or from Hive 
+# ### or from Hive
 wine_data_raw = spark.sql('''Select * from default.wineds_ext''')
 """
 
@@ -82,7 +82,7 @@ wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")
 
 
 # # Build a classification model using MLLib
-# # Step 1 Split dataset into train and validation 
+# # Step 1 Split dataset into train and validation
 # using randomSplit function of datasets
 (trainingData, testData) = wine_data.randomSplit([0.7, 0.3])
 
@@ -96,29 +96,29 @@ labelIndexer = StringIndexer(inputCol = 'quality', outputCol = 'label')
 
 # group all features into single column (required for Spark)
 featureIndexer = VectorAssembler(
-    inputCols = ['fixedacidity', "volatileacidity", 
-                 "citricacid","residualsugar", 
-                 "chlorides", "freesulfurdioxide", 
-                 "totalsulfurdioxide", "density", 
+    inputCols = ['fixedacidity', "volatileacidity",
+                 "citricacid","residualsugar",
+                 "chlorides", "freesulfurdioxide",
+                 "totalsulfurdioxide", "density",
                  "ph", "sulphates", "alcohol"],
     outputCol = 'features')
 
-# # Step 3 : 
+# # Step 3 :
 # # Prepare Classifier ( Random Forest in this case )
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassifier
 
 #define classifier parameters
-classifier = RandomForestClassifier(labelCol = 'label', featuresCol = 'features', 
-                                    numTrees = param_numTrees, 
-                                    maxDepth = param_maxDepth,  
+classifier = RandomForestClassifier(labelCol = 'label', featuresCol = 'features',
+                                    numTrees = param_numTrees,
+                                    maxDepth = param_maxDepth,
                                     impurity = param_impurity)
 #prepare pipeline
 pipeline = Pipeline(stages=[labelIndexer, featureIndexer, classifier])
 #fit model
 model = pipeline.fit(trainingData)
 
-# # Step 4 Evaluate Model 
+# # Step 4 Evaluate Model
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 #Predict on Test Data
@@ -134,7 +134,7 @@ print("The AUROC is {:f} and the AUPR is {:f}".format(auroc, aupr))
 cdsw.track_metric("auroc", auroc)
 cdsw.track_metric("aupr", aupr)
 
-# # Save Model for deployement 
+# # Save Model for deployement
 #model.write().overwrite().save("models/spark")
 
 #bring model back into project and tar it
@@ -148,4 +148,3 @@ cdsw.track_metric("aupr", aupr)
 cdsw.track_file("spark_rf.tar")
 
 spark.stop()
-
