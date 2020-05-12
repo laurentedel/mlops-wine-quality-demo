@@ -14,6 +14,7 @@ cdsw.track_metric("numTrees",param_numTrees)
 cdsw.track_metric("maxDepth",param_maxDepth)
 cdsw.track_metric("impurity",param_impurity)
 """
+DL_s3bucket = os.environ["DL_S3_BUCKET"]
 
 # Comment out when using experiments
 param_numTrees= 10
@@ -30,6 +31,7 @@ spark = SparkSession\
   .config("spark.hadoop.fs.s3a.metadatastore.impl","org.apache.hadoop.fs.s3a.s3guard.NullMetadataStore")\
   .config("spark.hadoop.fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider")\
   .config("spark.hadoop.fs.s3a.delegation.token.binding","")\
+  .config("spark.yarn.access.hadoopFileSystems", DL_s3bucket)\
   .getOrCreate()
 
 
@@ -65,17 +67,14 @@ schema = StructType([StructField("fixedacidity", DoubleType(), True),
 ])
 
 
-#set path to data
-data_path = "file:///home/cdsw/data"
-data_file = "WineNewGBTDataSet.csv"
-#data_path = "/tmp/wine_pred"
-#data_file = "WineNewGBTDataSet.csv"
-wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
+# set path from Hive
+wine_data_raw = spark.sql('''SELECT * FROM default.wineds_ext''')
 
-"""
-# ### or from Hive
-wine_data_raw = spark.sql('''Select * from default.wineds_ext''')
-"""
+# ### or from local file data
+#data_path = "file:///home/cdsw/data"
+#data_file = "WineNewGBTDataSet.csv"
+#wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
+
 
 # Cleanup - Remove invalid data
 wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")
