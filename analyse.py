@@ -5,6 +5,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
+DL_s3bucket = os.environ["DL_S3_BUCKET"]
+
 spark = SparkSession\
   .builder\
   .appName('wine-quality-analysis')\
@@ -14,6 +16,7 @@ spark = SparkSession\
   .config("spark.hadoop.fs.s3a.metadatastore.impl","org.apache.hadoop.fs.s3a.s3guard.NullMetadataStore")\
   .config("spark.hadoop.fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider")\
   .config("spark.hadoop.fs.s3a.delegation.token.binding","")\
+  .config("spark.yarn.access.hadoopFileSystems", DL_s3bucket)\
   .getOrCreate()
 
 print("started")
@@ -44,24 +47,27 @@ HTML("<a href='"+sparkUI_url+"'>"+sparkUI_url+"</a>")
 #     Alcohol: numeric
 #     Quality: discrete
 
-schema = StructType([
-  StructField("fixedAcidity", DoubleType(), True),
-  StructField("volatileAcidity", DoubleType(), True),
-  StructField("citricAcid", DoubleType(), True),
-  StructField("residualSugar", DoubleType(), True),
-  StructField("chlorides", DoubleType(), True),
-  StructField("freeSulfurDioxide", DoubleType(), True),
-  StructField("totalSulfurDioxide", DoubleType(), True),
-  StructField("density", DoubleType(), True),
-  StructField("pH", DoubleType(), True),
-  StructField("sulphates", DoubleType(), True),
-  StructField("Alcohol", DoubleType(), True),
-  StructField("Quality", StringType(), True)
-])
+#schema = StructType([
+#  StructField("fixedAcidity", DoubleType(), True),
+#  StructField("volatileAcidity", DoubleType(), True),
+#  StructField("citricAcid", DoubleType(), True),
+#  StructField("residualSugar", DoubleType(), True),
+#  StructField("chlorides", DoubleType(), True),
+#  StructField("freeSulfurDioxide", DoubleType(), True),
+#  StructField("totalSulfurDioxide", DoubleType(), True),
+#  StructField("density", DoubleType(), True),
+#  StructField("pH", DoubleType(), True),
+#  StructField("sulphates", DoubleType(), True),
+#  StructField("Alcohol", DoubleType(), True),
+#  StructField("Quality", StringType(), True)
+#])
+#
+#data_path = "file:///home/cdsw/data"
+#data_file = "WineNewGBTDataSet.csv"
+#wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
+#wine_data_raw.show(3)
 
-data_path = "file:///home/cdsw/data"
-data_file = "WineNewGBTDataSet.csv"
-wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
+wine_data_raw = spark.sql(''' SELECT * FROM wineDS_ext''')
 wine_data_raw.show(3)
 
 
@@ -71,20 +77,20 @@ wine_data_raw.show(3)
 # Documentation - (http://spark.apache.org/docs/latest/sql-programming-guide.html#dataframe-operations)
 # Spark SQL - manipulate data as if it was a table
 
-wine_data_raw.createOrReplaceTempView("wine")
+#wine_data_raw.createOrReplaceTempView("wine")
 
 # #### Number of lines in dataset :
-spark.sql("select count(*) from wine").show()
+spark.sql("select count(*) from wineDS_ext").show()
 
 # #### View labels and nb lines attached
-spark.sql("select distinct(Quality), count(*) from wine GROUP BY Quality").show()
+spark.sql("select distinct(Quality), count(*) from wineDS_ext GROUP BY Quality").show()
 
 
 # #### Correct invalid label
-wine_data = wine_data_raw.filter(wine_data_raw.Quality != "1")
+wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")
 total_wines = wine_data.count()
-good_wines = wine_data.filter(wine_data.Quality == 'Excellent').count()
-good_wines = wine_data.filter(wine_data.Quality == 'Poor').count()
+good_wines = wine_data.filter(wine_data.quality == 'Excellent').count()
+good_wines = wine_data.filter(wine_data.quality == 'Poor').count()
 
 "Wines total: {}, Good : {}, Poor : {}".format(total_wines,good_wines,good_wines)
 
@@ -116,21 +122,21 @@ get_ipython().magic(u'matplotlib inline')
 import matplotlib.pyplot as plt
 import seaborn as sb
 
-sb.distplot(sample_data['Alcohol'], kde=False)
+sb.distplot(sample_data['alcohol'], kde=False)
 
 # We can examine feature differences in the distribution of our features when we condition (split) our data.
 # [BoxPlot docs](http://stanford.edu/~mwaskom/software/seaborn/generated/seaborn.boxplot.html)
 
-sb.boxplot(x="Quality", y="Alcohol", data=sample_data)
+sb.boxplot(x="quality", y="alcohol", data=sample_data)
 
 # ### 2.3 Joint Distributions with Seaborn
 # Looking at joint distributions of data can also tell us a lot, particularly about redundant features.
 # [Seaborn's PairPlot](http://stanford.edu/~mwaskom/software/seaborn/generated/seaborn.pairplot.html#seaborn.pairplot)
 # let's us look at joint distributions for many variables at once.
 
-example_numeric_data = sample_data[["fixedAcidity", "volatileAcidity",
-                                       "citricAcid", "residualSugar", "Quality"]]
-sb.pairplot(example_numeric_data, hue="Quality")
+example_numeric_data = sample_data[["fixedacidity", "volatileacidity",
+                                       "citricacid", "residualsugar", "quality"]]
+sb.pairplot(example_numeric_data, hue="quality")
 
 
 HTML("<a href='"+sparkUI_url+"'>"+sparkUI_url+"</a>")
