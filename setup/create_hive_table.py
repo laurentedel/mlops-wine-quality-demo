@@ -67,8 +67,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `default`.`{}` (
 `sulphates` double ,
 `alcohol` double ,
 `quality` string )
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ';'
-STORED AS TextFile
+STORED AS PARQUET
 LOCATION '{}'
 '''.format('wineds_ext', path_hive_labeled,  )
 spark.sql(statement)
