@@ -5,21 +5,11 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
-DL_s3bucket = os.environ["DL_S3_BUCKET"]
-
 spark = SparkSession\
-  .builder\
-  .appName('wine-quality-analysis')\
-  .config("spark.executor.memory","2g")\
-  .config("spark.executor.cores","2")\
-  .config("spark.executor.instances","3")\
-  .config("spark.hadoop.fs.s3a.metadatastore.impl","org.apache.hadoop.fs.s3a.s3guard.NullMetadataStore")\
-  .config("spark.hadoop.fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider")\
-  .config("spark.hadoop.fs.s3a.delegation.token.binding","")\
-  .config("spark.yarn.access.hadoopFileSystems", DL_s3bucket)\
-  .getOrCreate()
-
-print("started")
+    .builder\
+    .appName('wine-quality-analysis')\
+    .master("local[*]")\
+    .getOrCreate()
 
 from IPython.core.display import HTML
 import os
@@ -47,26 +37,6 @@ HTML("<a href='"+sparkUI_url+"'>"+sparkUI_url+"</a>")
 #     Alcohol: numeric
 #     Quality: discrete
 
-#schema = StructType([
-#  StructField("fixedAcidity", DoubleType(), True),
-#  StructField("volatileAcidity", DoubleType(), True),
-#  StructField("citricAcid", DoubleType(), True),
-#  StructField("residualSugar", DoubleType(), True),
-#  StructField("chlorides", DoubleType(), True),
-#  StructField("freeSulfurDioxide", DoubleType(), True),
-#  StructField("totalSulfurDioxide", DoubleType(), True),
-#  StructField("density", DoubleType(), True),
-#  StructField("pH", DoubleType(), True),
-#  StructField("sulphates", DoubleType(), True),
-#  StructField("Alcohol", DoubleType(), True),
-#  StructField("Quality", StringType(), True)
-#])
-#
-#data_path = "file:///home/cdsw/data"
-#data_file = "WineNewGBTDataSet.csv"
-#wine_data_raw = spark.read.csv(data_path+'/'+data_file, schema=schema,sep=';')
-#wine_data_raw.show(3)
-
 wine_data_raw = spark.sql(''' SELECT * FROM wineDS_ext''')
 wine_data_raw.show(3)
 
@@ -77,14 +47,11 @@ wine_data_raw.show(3)
 # Documentation - (http://spark.apache.org/docs/latest/sql-programming-guide.html#dataframe-operations)
 # Spark SQL - manipulate data as if it was a table
 
-#wine_data_raw.createOrReplaceTempView("wine")
-
 # #### Number of lines in dataset :
 spark.sql("select count(*) from wineDS_ext").show()
 
 # #### View labels and nb lines attached
 spark.sql("select distinct(Quality), count(*) from wineDS_ext GROUP BY Quality").show()
-
 
 # #### Correct invalid label
 wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")

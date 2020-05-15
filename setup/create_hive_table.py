@@ -1,32 +1,21 @@
 import os
-DL_s3bucket = os.environ["DL_S3_BUCKET"]
-path_hive_labeled = DL_s3bucket + '/tmp/wine_pred/'
-path_hive_predict = DL_s3bucket + '/tmp/wine_pred_hive/'
+import time;
 
+path_hive_labeled = '/tmp/wine_pred_' + os.environ["HADOOP_USER_NAME"] + str(int(time.time())) + '/'
+path_hive_predict = '/tmp/wine_pred_hive_' + os.environ["HADOOP_USER_NAME"] + str(int(time.time())) + '/'
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
-
-try:
-  print("S3 bucket is " + DL_s3bucket)
-except:
-  print("An exception occurred: S3 bucket isn't defined")
 
 print("Start Spark session :")
 spark = SparkSession \
   .builder \
   .appName('wine-quality-create-table') \
-  .config("spark.hadoop.fs.s3a.impl","org.apache.hadoop.fs.s3a.S3AFileSystem")\
-  .config("spark.hadoop.fs.s3a.connection.ssl.enabled","true")\
-  .config("spark.hadoop.fs.s3a.metadatastore.impl","org.apache.hadoop.fs.s3a.s3guard.NullMetadataStore")\
-  .config("spark.yarn.access.hadoopFileSystems", DL_s3bucket)\
-  .config("spark.hadoop.yarn.resourcemanager.principal","csso_abreshears")\
+  .master("local[*]")\
   .getOrCreate()
 
-print("started")
-print("read data")
-
-### Data does not have schema, so we declare it manually
+# Read data
+# Data does not have schema, so we declare it manually
 schema = StructType([StructField("fixedAcidity", DoubleType(), True),
   StructField("volatileAcidity", DoubleType(), True),
   StructField("citricAcid", DoubleType(), True),
@@ -48,9 +37,8 @@ wine_data_raw.show(3)
 
 wine_data_raw.write.mode('overwrite').parquet(path_hive_labeled)
 
-
-
 #Read Data and save to S3
+
 #Create table of labeled data for training
 spark.sql('''DROP TABLE IF EXISTS `default`.`{}`'''.format('wineds_ext'))
 statement = '''
@@ -72,13 +60,12 @@ LOCATION '{}'
 '''.format('wineds_ext', path_hive_labeled,  )
 spark.sql(statement)
 
-print(statement)
-
 print("First 5 rows of labeled data - hive")
 spark.sql('''SELECT * FROM wineDS_ext LIMIT 5''').show()
 
 #Create table of unlabeled data
-#Note using same data as training...
+
+#Note: using same data as training...
 
 wine_df = spark.sql(''' SELECT
 `fixedacidity`, `volatileacidity`,
@@ -110,13 +97,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `default`.`{}` (
 STORED AS PARQUET
 LOCATION '{}'
 '''.format( 'wineds_ext_nolabel', path_hive_predict, )
-print(statement)
-
 spark.sql(statement)
 
-print("First 5 rows of labeled data - hive")
+print("First 5 rows of unlabeled data - hive")
 spark.sql('''SELECT * FROM wineds_ext_nolabel LIMIT 5''').show()
-
-spark.read.text(DL_s3bucket + "/tmp/wine_pred").show()
-
-#spark.stop()

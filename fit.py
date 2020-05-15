@@ -14,60 +14,21 @@ cdsw.track_metric("numTrees",param_numTrees)
 cdsw.track_metric("maxDepth",param_maxDepth)
 cdsw.track_metric("impurity",param_impurity)
 """
-DL_s3bucket = os.environ["DL_S3_BUCKET"]
 
 # Comment out when using experiments
 param_numTrees= 10
 param_maxDepth= 15
 param_impurity= "gini"
 
-
 spark = SparkSession\
-  .builder\
-  .appName('wine-quality-analysis')\
-  .config("spark.executor.memory","2g")\
-  .config("spark.executor.cores","2")\
-  .config("spark.executor.instances","3")\
-  .config("spark.hadoop.fs.s3a.metadatastore.impl","org.apache.hadoop.fs.s3a.s3guard.NullMetadataStore")\
-  .config("spark.hadoop.fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider")\
-  .config("spark.hadoop.fs.s3a.delegation.token.binding","")\
-  .config("spark.yarn.access.hadoopFileSystems", DL_s3bucket)\
-  .getOrCreate()
-
+    .builder\
+    .appName('wine-quality-analysis')\
+    .master("local[*]")\
+    .getOrCreate()
 
 # # Load the data
-# ### From File
 
-# Define Schema :
-#     fixedacidity: numeric
-#     volatileacidity: numeric
-#     citricacid: numeric
-#     residualsugar: numeric
-#     chlorides: numeric
-#     freesulfursioxide: numeric
-#     totalsulfurdioxide: numeric
-#     density: numeric
-#     ph: numeric
-#     sulphates: numeric
-#     alcohol: numeric
-#     quality: discrete
-
-schema = StructType([StructField("fixedacidity", DoubleType(), True),
-  StructField("volatileacidity", DoubleType(), True),
-  StructField("citricacid", DoubleType(), True),
-  StructField("residualsugar", DoubleType(), True),
-  StructField("chlorides", DoubleType(), True),
-  StructField("freesulfurdioxide", DoubleType(), True),
-  StructField("totalsulfurdioxide", DoubleType(), True),
-  StructField("density", DoubleType(), True),
-  StructField("ph", DoubleType(), True),
-  StructField("sulphates", DoubleType(), True),
-  StructField("alcohol", DoubleType(), True),
-  StructField("quality", StringType(), True)
-])
-
-
-# set path from Hive
+# from Hive
 wine_data_raw = spark.sql('''SELECT * FROM default.wineds_ext''')
 
 # ### or from local file data
