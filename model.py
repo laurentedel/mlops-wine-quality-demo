@@ -3,6 +3,7 @@ from pyspark.sql.types import *
 from pyspark.ml import PipelineModel
 import pandas
 import time
+import os
 
 # import the new SDK
 import cdsw
