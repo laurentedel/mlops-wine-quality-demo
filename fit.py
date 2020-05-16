@@ -1,4 +1,5 @@
 import cdsw
+import os
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
@@ -24,6 +25,7 @@ spark = SparkSession\
     .builder\
     .appName('wine-quality-analysis')\
     .master("local[*]")\
+    .config("spark.hadoop.yarn.resourcemanager.principal",os.environ["HADOOP_USER_NAME"])\
     .getOrCreate()
 
 # # Load the data
@@ -95,7 +97,7 @@ cdsw.track_metric("auroc", auroc)
 cdsw.track_metric("aupr", aupr)
 
 # # Save Model for deployement
-#model.write().overwrite().save("models/spark")
+model.write().overwrite().save("models/spark")
 
 #bring model back into project and tar it
 #!rm -rf models/
