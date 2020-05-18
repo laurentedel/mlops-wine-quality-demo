@@ -43,18 +43,18 @@ wine_data_raw.write.mode('overwrite').parquet(path_hive_labeled)
 spark.sql('''DROP TABLE IF EXISTS `default`.`{}`'''.format('wineds_ext'))
 statement = '''
 CREATE EXTERNAL TABLE IF NOT EXISTS `default`.`{}` (
-`fixedacidity` double ,
-`volatileacidity` double ,
-`citricacid` double ,
-`residualsugar` double ,
+`fixedAcidity` double ,
+`volatileAcidity` double ,
+`citricAcid` double ,
+`residualSugar` double ,
 `chlorides` double ,
-`freesulfurdioxide` bigint ,
-`totalsulfurdioxide` bigint ,
+`freeSulfurDioxide` bigint ,
+`totalSulfurDioxide` bigint ,
 `density` double ,
-`ph` double ,
+`pH` double ,
 `sulphates` double ,
-`alcohol` double ,
-`quality` string )
+`Alcohol` double ,
+`Quality` string )
 STORED AS PARQUET
 LOCATION '{}'
 '''.format('wineds_ext', path_hive_labeled,  )
@@ -68,11 +68,11 @@ spark.sql('''SELECT * FROM wineDS_ext LIMIT 5''').show()
 #Note: using same data as training...
 
 wine_df = spark.sql(''' SELECT
-`fixedacidity`, `volatileacidity`,
-`citricacid`, `residualsugar` ,
-`chlorides` , `freesulfurdioxide`,
-`totalsulfurdioxide` ,`density` ,
-`ph`, `sulphates`,`alcohol`
+`fixedAcidity`, `volatileAcidity`,
+`citricAcid`, `residualSugar` ,
+`chlorides` , `freeSulfurDioxide`,
+`totalSulfurDioxide` ,`density` ,
+`pH`, `sulphates`,`Alcohol`
 FROM wineDS_ext''')
 
 # Write in Parquet
@@ -83,17 +83,17 @@ spark.sql('''DROP TABLE IF EXISTS `default`.`{}`'''.format('wineds_ext_nolabel')
 
 statement = '''
 CREATE EXTERNAL TABLE IF NOT EXISTS `default`.`{}` (
-`fixedacidity` double ,
-`volatileacidity` double ,
-`citricacid` double ,
-`residualsugar` double ,
+`fixedAcidity` double ,
+`volatileAcidity` double ,
+`citricAcid` double ,
+`residualSugar` double ,
 `chlorides` double ,
-`freesulfurdioxide` bigint ,
-`totalsulfurdioxide` bigint ,
+`freeSulfurDioxide` bigint ,
+`totalSulfurDioxide` bigint ,
 `density` double ,
-`ph` double ,
+`pH` double ,
 `sulphates` double ,
-`alcohol` double )
+`Alcohol` double )
 STORED AS PARQUET
 LOCATION '{}'
 '''.format( 'wineds_ext_nolabel', path_hive_predict, )

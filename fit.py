@@ -40,7 +40,7 @@ wine_data_raw = spark.sql('''SELECT * FROM default.wineds_ext''')
 
 
 # Cleanup - Remove invalid data
-wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")
+wine_data = wine_data_raw.filter(wine_data_raw.Quality != "1")
 
 
 # # Build a classification model using MLLib
@@ -58,11 +58,11 @@ labelIndexer = StringIndexer(inputCol = 'quality', outputCol = 'label')
 
 # group all features into single column (required for Spark)
 featureIndexer = VectorAssembler(
-    inputCols = ['fixedacidity', "volatileacidity",
-                 "citricacid","residualsugar",
-                 "chlorides", "freesulfurdioxide",
-                 "totalsulfurdioxide", "density",
-                 "ph", "sulphates", "alcohol"],
+    inputCols = ['fixedAcidity', "volatileAcidity",
+                 "citricAcid","residualSugar",
+                 "chlorides", "freeSulfurDioxide",
+                 "totalSulfurDioxide", "density",
+                 "pH", "sulphates", "Alcohol"],
     outputCol = 'features')
 
 # # Step 3 :
