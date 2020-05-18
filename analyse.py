@@ -54,10 +54,10 @@ spark.sql("select count(*) from wineDS_ext").show()
 spark.sql("select distinct(Quality), count(*) from wineDS_ext GROUP BY Quality").show()
 
 # #### Correct invalid label
-wine_data = wine_data_raw.filter(wine_data_raw.quality != "1")
+wine_data = wine_data_raw.filter(wine_data_raw.Quality != "1")
 total_wines = wine_data.count()
-good_wines = wine_data.filter(wine_data.quality == 'Excellent').count()
-good_wines = wine_data.filter(wine_data.quality == 'Poor').count()
+good_wines = wine_data.filter(wine_data.Quality == 'Excellent').count()
+good_wines = wine_data.filter(wine_data.Quality == 'Poor').count()
 
 "Wines total: {}, Good : {}, Poor : {}".format(total_wines,good_wines,good_wines)
 
@@ -89,21 +89,21 @@ get_ipython().magic(u'matplotlib inline')
 import matplotlib.pyplot as plt
 import seaborn as sb
 
-sb.distplot(sample_data['alcohol'], kde=False)
+sb.distplot(sample_data['Alcohol'], kde=False)
 
 # We can examine feature differences in the distribution of our features when we condition (split) our data.
 # [BoxPlot docs](http://stanford.edu/~mwaskom/software/seaborn/generated/seaborn.boxplot.html)
 
-sb.boxplot(x="quality", y="alcohol", data=sample_data)
+sb.boxplot(x="Quality", y="Alcohol", data=sample_data)
 
 # ### 2.3 Joint Distributions with Seaborn
 # Looking at joint distributions of data can also tell us a lot, particularly about redundant features.
 # [Seaborn's PairPlot](http://stanford.edu/~mwaskom/software/seaborn/generated/seaborn.pairplot.html#seaborn.pairplot)
 # let's us look at joint distributions for many variables at once.
 
-example_numeric_data = sample_data[["fixedacidity", "volatileacidity",
-                                       "citricacid", "residualsugar", "quality"]]
-sb.pairplot(example_numeric_data, hue="quality")
+example_numeric_data = sample_data[["fixedAcidity", "volatileAcidity",
+                                       "citricAcid", "residualSugar", "Quality"]]
+sb.pairplot(example_numeric_data, hue="Quality")
 
 
 HTML("<a href='"+sparkUI_url+"'>"+sparkUI_url+"</a>")
