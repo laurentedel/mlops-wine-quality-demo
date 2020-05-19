@@ -21,6 +21,7 @@ param_numTrees= 10
 param_maxDepth= 15
 param_impurity= "gini"
 
+spark.stop()
 spark = SparkSession\
     .builder\
     .appName('wine-quality-analysis')\
@@ -54,7 +55,7 @@ from pyspark.ml.feature import StringIndexer
 from pyspark.ml.feature import VectorAssembler
 
 # split labels from data frame and encode in numerical format (requiered for Spark)
-labelIndexer = StringIndexer(inputCol = 'quality', outputCol = 'label')
+labelIndexer = StringIndexer(inputCol = 'Quality', outputCol = 'label')
 
 # group all features into single column (required for Spark)
 featureIndexer = VectorAssembler(
